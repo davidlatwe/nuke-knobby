@@ -260,22 +260,45 @@ def read(node, filter=None):
     return data
 
 
-def mold(node):
-    """
-    """
+def mold(node, tab=None):
+    """Return user-defined knobs from given `node` with hierarchy
 
+    Args:
+        node (nuke.Node): Nuke node object
+        tab (str, optional): Target tab name. If given, only read
+            knobs of this tab.
+
+    Returns:
+        dict
+
+    """
     knobs = node.knobs()
+    target = (tab or "") + ":"
 
     def _mold(tablet, prefix=None):
         data = OrderedDict()
         prefix = (prefix + ":") if prefix else ""
 
+        name = tablet.name or ""
+        abs_name = name + ":"
+        all_elem = abs_name.startswith(target) if tab and name else True
+
         for item in tablet:
             if isinstance(item, parser.Tablet):
                 name = item.name
-                key = name[len(prefix):] if prefix else name
-                data[key] = _mold(item, prefix=name)
-            else:
+                abs_name = name + ":"
+
+                if tab and target.startswith(abs_name):
+
+                    data = _mold(item, prefix=name)
+
+                elif all_elem:
+
+                    key = name[len(prefix):] if prefix else name
+                    data[key] = _mold(item, prefix=name)
+
+            elif all_elem:
+
                 matched = KNOB_PATTERN.search(item)
                 if not matched:
                     raise TypeError("Knob name can not be identified.")
@@ -284,7 +307,6 @@ def mold(node):
                     knob = knobs[name]
                     key = name[len(prefix):] if prefix else name
                     data[key] = knob.value()
-                    # (TODO) Int knob value may turn into float
 
         return data
 
