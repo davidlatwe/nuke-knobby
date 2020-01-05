@@ -2,7 +2,6 @@
 import sys
 import re
 import nuke
-from collections import OrderedDict
 
 from . import parser
 
@@ -260,23 +259,27 @@ def read(node, filter=None):
     return data
 
 
-def mold(node, tab=None):
+def mold(node, tab=None, map_cls=None):
     """Return user-defined knobs from given `node` with hierarchy
 
     Args:
         node (nuke.Node): Nuke node object
         tab (str, optional): Target tab name. If given, only read
             knobs of this tab.
+        map_cls (Mapping type class, optional): Default `dict`, use
+            `collections.OrderedDict` if orders need to be preserved.
 
     Returns:
-        dict
+        Instance of `map_cls`
 
     """
     knobs = node.knobs()
     target = (tab or "") + ":"
 
+    map_cls = map_cls or dict
+
     def _mold(tablet, prefix=None):
-        data = OrderedDict()
+        data = map_cls()
         prefix = (prefix + ":") if prefix else ""
 
         name = tablet.name or ""
