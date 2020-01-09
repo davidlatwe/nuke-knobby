@@ -6,10 +6,11 @@ from . import parser
 
 
 if sys.version_info[0] == 3:  # PY3
-    string_types = str,
+    string_types = str
 else:
     import __builtin__
-    string_types = __builtin__.basestring,
+
+    string_types = __builtin__.basestring
 
 
 def imprint(node, data, tab=None):
